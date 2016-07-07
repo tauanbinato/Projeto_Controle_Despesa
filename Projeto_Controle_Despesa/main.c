@@ -45,6 +45,9 @@ int verifica_nome(char *s){
     for (i=0; s[i] != '\0'; i++) {
         
         if ((s[i] >= 0 && s[i] <= 64) || (s[i]>= 91 && s[i] <= 96) || (s[i] >= 123 && s[i] <= 127)) {
+            if (s[i] == 32) {
+                break;
+            }
             printf("Caractere '%c' inválido! Tente novamente.\n",s[i]);
             return 0;
         }
@@ -66,7 +69,7 @@ Fila *fila_cria(void){
     for (a = 1; a != 0;)
     {
         printf("- Criar nova coluna || Digite um nome para coluna:\n");
-        scanf(" %s",aux);
+        scanf(" %[^\n]s",aux);
         if (verifica_nome(aux)) {
             strcpy(f->nome, aux);
             a = 0;
