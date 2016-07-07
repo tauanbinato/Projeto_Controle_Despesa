@@ -21,5 +21,5 @@ int fila_pop (Fila *, double *);  /* Remove um numero da fila */
 void fila_exibe (Fila *);         /* Exibe a lista sem altera-la */
 
 
-
+//
 #endif /* fila_h_h */
