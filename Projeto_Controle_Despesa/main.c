@@ -578,6 +578,8 @@ void chama_menu_switch(Fila **f, int n){
                 if(testa_se_existe_em_vetor(f,y)){
                     
                     fila_exibe_despesa(f[y]);
+                }else{
+                    printf("Coluna nao identificada, retornando ao menu..");
                 }
                 printf("\n");
                 break;
@@ -593,6 +595,8 @@ void chama_menu_switch(Fila **f, int n){
                 if(testa_se_existe_em_vetor(f,y)){
                     
                     fila_exibe(f[y]);
+                }else{
+                    printf("Coluna nao identificada retornando ao menu..");
                 }
                 printf("\n");
                 break;
