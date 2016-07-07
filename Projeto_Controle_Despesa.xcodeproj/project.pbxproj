@@ -25,6 +25,7 @@
 /* Begin PBXFileReference section */
 		F21351EF1D2DF2BF00008D11 /* Projeto_Controle_Despesa */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = Projeto_Controle_Despesa; sourceTree = BUILT_PRODUCTS_DIR; };
 		F21351F21D2DF2BF00008D11 /* main.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = main.c; sourceTree = "<group>"; };
+		F21351F91D2DF37500008D11 /* fila-h.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "fila-h.h"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -58,6 +59,7 @@
 			isa = PBXGroup;
 			children = (
 				F21351F21D2DF2BF00008D11 /* main.c */,
+				F21351F91D2DF37500008D11 /* fila-h.h */,
 			);
 			path = Projeto_Controle_Despesa;
 			sourceTree = "<group>";
