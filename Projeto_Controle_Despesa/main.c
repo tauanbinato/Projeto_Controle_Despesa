@@ -460,9 +460,9 @@ void chama_menu_switch(Fila **f, int n){
                 exibe_nome_fila(f, n);
                 scanf(" %d",&y);
                 if(testa_se_existe_em_vetor(f,y)){
-                    printf("Selecione um valor:\n");
+                    printf("Entre um valor :\n");
                     double h;
-                    scanf("%lf",&h);
+                    scanf(" %lf",&h);
                     fila_insere(f[y],h);
                     break;
                 }else{
