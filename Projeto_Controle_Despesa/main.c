@@ -299,7 +299,24 @@ int testa_vetor_ponteiro_vazio(Fila *f[]){
     return f[0] == NULL;
 }
 
-void chama_menu_switch(Fila **f, int n){
+//CRIANDO ARQUIVOS
+
+void cria_arquivo_coluna(char *nomeColuna){
+    
+    FILE *arqColunas = fopen("//Users//tauanflores//Desktop//PControl-Despesas//colunas.txt", "w+");
+    
+    if (arqColunas == NULL) {
+        printf("Nao abriu colunas.txt");
+    }
+    
+    if(fwrite(nomeColuna, 1, 10, arqColunas) == 0){
+        printf("Ocorreu um erro ao escrever no arquivo colunas.txt");
+    }
+    fclose(arqColunas);
+}
+
+
+void chama_menu_switch(Fila *f[], int n){
     
     char s[3];
     char confi , c1,c2;
@@ -421,6 +438,7 @@ void chama_menu_switch(Fila **f, int n){
                 }
                 
                 f[a] = fila_cria();
+                cria_arquivo_coluna(f[a]->nome);
                 printf("- %s - Criada com sucesso!\n\n",f[a]->nome);
                 a++;
                 break;
@@ -637,6 +655,8 @@ void inicia_vetor_null(Fila *v[] , int n){
     }
     
 }
+
+
 
 int main(void) {
     
