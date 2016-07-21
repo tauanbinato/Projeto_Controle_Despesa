@@ -45,6 +45,9 @@ int verifica_nome(char *s){
     for (i=0; s[i] != '\0'; i++) {
         
         if ((s[i] >= 0 && s[i] <= 64) || (s[i]>= 91 && s[i] <= 96) || (s[i] >= 123 && s[i] <= 127)) {
+            if (s[i] == 32) {
+                break;
+            }
             printf("Caractere '%c' inválido! Tente novamente.\n",s[i]);
             return 0;
         }
@@ -66,7 +69,7 @@ Fila *fila_cria(void){
     for (a = 1; a != 0;)
     {
         printf("- Criar nova coluna || Digite um nome para coluna:\n");
-        scanf(" %s",aux);
+        scanf(" %[^\n]s",aux);
         if (verifica_nome(aux)) {
             strcpy(f->nome, aux);
             a = 0;
@@ -296,7 +299,91 @@ int testa_vetor_ponteiro_vazio(Fila *f[]){
     return f[0] == NULL;
 }
 
-void chama_menu_switch(Fila **f, int n){
+//CRIANDO ARQUIVO COLUNA
+
+void escreve_arquivo_coluna(char *nomeColuna){
+    
+    unsigned long int numLetras;
+    
+    FILE *arqColunas = fopen("//Users//tauanflores//Desktop//PControl-Despesas//colunas.txt", "a+");
+    
+    if (arqColunas == NULL) {
+        printf("Nao abriu colunas.txt");
+    }
+    numLetras = strlen(nomeColuna);
+    if(fwrite(nomeColuna, 1, numLetras, arqColunas) == 0){
+        printf("Ocorreu um erro ao escrever no arquivo colunas.txt");
+    }
+    
+    //Pula uma linha p/ proximo append
+    fwrite("\n", sizeof(char), 1, arqColunas);
+    
+    //Fecha arquivo
+    fclose(arqColunas);
+}
+
+
+// INSERINDO RECEITA EM ARQUIVO COLUNA
+
+void escreve_receita_em_coluna(char *nomeColuna, int valorReceita){
+    
+    //unsigned long int numLetras;
+    char compara[51];
+    
+    FILE *arqColunas = fopen("//Users//tauanflores//Desktop//PControl-Despesas//colunas.txt", "r+");
+    if (arqColunas == NULL) {
+        abort();
+    }
+    
+    //numLetras = strlen(nomeColuna);
+    while(fscanf(arqColunas," %[a-zA-Z ]s", compara) == 1){
+        
+        if (strstr(nomeColuna, compara)) {
+            printf("%s = %s",nomeColuna , compara);
+            fprintf(arqColunas, " %d" , valorReceita);
+        }
+        
+    }
+    fclose(arqColunas);
+}
+
+
+// LOAD DOS ARQUIVOS ***********************************************************************************
+
+Fila *fila_cria_load(char *string){
+    
+    Fila *f = malloc(sizeof(Fila));
+    if (f == NULL) {
+        abort();
+    }
+    strcpy(f->nome, string);
+    
+    f->ini = f->final = NULL;
+    f->iniD = f->finalD = NULL;
+    
+    return f;
+}
+
+int load_program(Fila *f[] , int n , FILE * arqColunas){
+    
+    char string[51];
+    int i = 0;
+    
+    arqColunas = fopen("//Users//tauanflores//Desktop//PControl-Despesas//colunas.txt", "r");
+    if (arqColunas == NULL) {
+        return 0;
+    }
+    
+    while(fscanf(arqColunas, " %[a-zA-Z ]s",string) == 1){
+    f[i] = fila_cria_load(string);
+    i++;
+    }
+    fclose(arqColunas);
+    return 1;
+    
+}
+
+void chama_menu_switch(Fila *f[], int n){
     
     char s[3];
     char confi , c1,c2;
@@ -418,6 +505,7 @@ void chama_menu_switch(Fila **f, int n){
                 }
                 
                 f[a] = fila_cria();
+                escreve_arquivo_coluna(f[a]->nome);
                 printf("- %s - Criada com sucesso!\n\n",f[a]->nome);
                 a++;
                 break;
@@ -450,6 +538,7 @@ void chama_menu_switch(Fila **f, int n){
                 
             case 3:
                 if (testa_vetor_ponteiro_vazio(f)) {
+                    
                     printf("Não existe nenhuma coluna cadastrada.\n");
                     break;
                 }
@@ -457,10 +546,11 @@ void chama_menu_switch(Fila **f, int n){
                 exibe_nome_fila(f, n);
                 scanf(" %d",&y);
                 if(testa_se_existe_em_vetor(f,y)){
-                    printf("Selecione um valor:\n");
+                    printf("Entre um valor :\n");
                     double h;
-                    scanf("%lf",&h);
+                    scanf(" %lf",&h);
                     fila_insere(f[y],h);
+                    escreve_receita_em_coluna(f[y]->nome, h);
                     break;
                 }else{
                     printf("\nColuna não identificada, voltando ao menu.\n\n");
@@ -575,6 +665,8 @@ void chama_menu_switch(Fila **f, int n){
                 if(testa_se_existe_em_vetor(f,y)){
                     
                     fila_exibe_despesa(f[y]);
+                }else{
+                    printf("Coluna nao identificada, retornando ao menu..");
                 }
                 printf("\n");
                 break;
@@ -590,6 +682,8 @@ void chama_menu_switch(Fila **f, int n){
                 if(testa_se_existe_em_vetor(f,y)){
                     
                     fila_exibe(f[y]);
+                }else{
+                    printf("Coluna nao identificada retornando ao menu..");
                 }
                 printf("\n");
                 break;
@@ -631,10 +725,14 @@ void inicia_vetor_null(Fila *v[] , int n){
     
 }
 
+
+
 int main(void) {
-    
+    //
+    FILE *arqColunas;
     Fila *v[MAX];
     inicia_vetor_null(v , MAX);
+    load_program(v,MAX,arqColunas);
     chama_menu_switch(v,MAX);
     
     
