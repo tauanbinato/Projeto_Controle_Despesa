@@ -329,17 +329,21 @@ void escreve_receita_em_coluna(char *nomeColuna, int valorReceita){
     
     //unsigned long int numLetras;
     char compara[51];
+    unsigned long int contadorSeek = 0;
     
-    FILE *arqColunas = fopen("//Users//tauanflores//Desktop//PControl-Despesas//colunas.txt", "r+");
+    FILE *arqColunas = fopen("//Users//tauanflores//Desktop//PControl-Despesas//colunas.txt", "r+b");
     if (arqColunas == NULL) {
         abort();
     }
     
     //numLetras = strlen(nomeColuna);
     while(fscanf(arqColunas," %[a-zA-Z ]s", compara) == 1){
+        contadorSeek += strlen(compara);
         
         if (strstr(nomeColuna, compara)) {
-            printf("%s = %s",nomeColuna , compara);
+            printf("%s = %s - %lu\n",nomeColuna , compara , contadorSeek);
+            contadorSeek += 2;
+            fseek(arqColunas, contadorSeek , SEEK_SET);
             fprintf(arqColunas, " %d" , valorReceita);
         }
         
@@ -728,7 +732,7 @@ void inicia_vetor_null(Fila *v[] , int n){
 
 
 int main(void) {
-    //
+    
     FILE *arqColunas;
     Fila *v[MAX];
     inicia_vetor_null(v , MAX);
