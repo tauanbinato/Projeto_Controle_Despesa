@@ -325,23 +325,30 @@ void escreve_arquivo_coluna(char *nomeColuna){
 
 // INSERINDO RECEITA EM ARQUIVO COLUNA
 
-//void escreve_receita_em_coluna(char *nomeColuna, int valorReceita){
-//    
-//    unsigned long int numLetras;
-//    
-//    FILE *arqColunas = fopen("//Users//tauanflores//Desktop//PControl-Despesas//colunas.txt", "a+");
-//    
-//    if (arqColunas == NULL) {
-//        printf("Nao abriu colunas.txt");
-//    }
-//    
-//    
-//    numLetras = strlen(nomeColuna);
-//    while(fread(nomeColuna,1,numLetras,arqColunas) == 1) {
-//        printf("achou");
-//    }
-//    
-//}
+void escreve_receita_em_coluna(char *nomeColuna, int valorReceita){
+    
+    //unsigned long int numLetras;
+    char compara[51];
+    
+    FILE *arqColunas = fopen("//Users//tauanflores//Desktop//PControl-Despesas//colunas.txt", "r+");
+    if (arqColunas == NULL) {
+        abort();
+    }
+    
+    //numLetras = strlen(nomeColuna);
+    while(fscanf(arqColunas," %[a-zA-Z ]s", compara) == 1){
+        
+        if (strstr(nomeColuna, compara)) {
+            printf("%s = %s",nomeColuna , compara);
+            fprintf(arqColunas, " %d" , valorReceita);
+        }
+        
+    }
+    fclose(arqColunas);
+}
+
+
+// LOAD DOS ARQUIVOS ***********************************************************************************
 
 Fila *fila_cria_load(char *string){
     
@@ -364,16 +371,16 @@ int load_program(Fila *f[] , int n , FILE * arqColunas){
     
     arqColunas = fopen("//Users//tauanflores//Desktop//PControl-Despesas//colunas.txt", "r");
     if (arqColunas == NULL) {
-        printf("Nao abriu colunas.txt");
         return 0;
     }
     
     while(fscanf(arqColunas, " %[a-zA-Z ]s",string) == 1){
     f[i] = fila_cria_load(string);
-    printf("pegou -> %s",string);
     i++;
     }
+    fclose(arqColunas);
     return 1;
+    
 }
 
 void chama_menu_switch(Fila *f[], int n){
@@ -543,7 +550,7 @@ void chama_menu_switch(Fila *f[], int n){
                     double h;
                     scanf(" %lf",&h);
                     fila_insere(f[y],h);
-                    //escreve_receita_em_coluna(f[y]->nome, h);
+                    escreve_receita_em_coluna(f[y]->nome, h);
                     break;
                 }else{
                     printf("\nColuna não identificada, voltando ao menu.\n\n");
