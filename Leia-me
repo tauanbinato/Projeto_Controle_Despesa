@@ -1,0 +1,26 @@
+# Projeto_Controle_Despesa
+
+Um mini projeto em C para organizar as despesas, basicamente você cria colunas as nomeia e insere receitas e despesas nas mesmas.
+Com isso voce pode ter uma coluna chamada "Empresa x" e adicionar despesas e receitas que a coluna produz.
+O codigo esta organizando os elementos (Receitas ou Despesas) em filas , ou seja , quando se remove uma receita ou uma despesa 
+da "Empresa x" o primeiro valor é retirado.
+Tambem se pode calcular o lucro bruto de uma determinada coluna.
+Estou organizando as colunas em um vetor de ponteiro para as Filas.
+No momento nao tem nenhuma persistencia de dados pretendo acrescentar como feature no futuro.
+
+O menu de ações por enquanto é esse:
+
+|*|Comandos Menu 1.0|*|
+1 - Criar nova coluna
+2 - Deletar uma coluna
+3 - Inserir receita em coluna
+4 - Remover receita em coluna
+5 - Visualizar lista de colunas
+6 - Remover despesa em coluna
+7 - Inserir despesa em coluna
+8 - Visualiza despesas em uma coluna
+9 - Visualiza receitas em uma coluna
+10 - Calcular lucro bruto
+11 - Sair
+
+Ficarei feliz em ter você para participar desse mini projeto. :)
