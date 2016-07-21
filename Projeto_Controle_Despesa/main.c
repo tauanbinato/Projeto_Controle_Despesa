@@ -728,7 +728,7 @@ void inicia_vetor_null(Fila *v[] , int n){
 
 
 int main(void) {
-    
+    //
     FILE *arqColunas;
     Fila *v[MAX];
     inicia_vetor_null(v , MAX);
