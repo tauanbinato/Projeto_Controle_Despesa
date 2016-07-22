@@ -323,7 +323,7 @@ void escreve_coluna_em_receita(char *nomeColuna){
 }
 
 
-// INSERINDO RECEITA EM ARQUIVO COLUNA -----------------------------//
+// INSERINDO RECEITA EM ARQUIVO COLUNA + FUNCOES RELACIONADAS-----------------------------//
 
 void converteIntParaString(int valorReceita , char *string){
     
@@ -354,12 +354,24 @@ int contaEspacosEmString(char *string){
     return contador;
 }
 
+char * concatenaString(char *s1, char *s2)
+{
+    char *result = malloc(strlen(s1)+strlen(s2)+1);//+1 for the zero-terminator
+    //in real code you would check for errors in malloc here
+    strcpy(result, s1);
+    strcat(result, s2);
+    return result;
+}
+
 void escreve_receita_em_coluna(char *nomeColuna, int valorReceita){
     
     //Variáveis ----------------//
+    int i;
     char compara[51];
     char receitaStr[1024];
+    char *strConcatenada = NULL;
     char receitaPos = '+';
+    char space = ' ';
     int numDeChars;
     unsigned long int contadorSeek = 0;
     
@@ -377,14 +389,26 @@ void escreve_receita_em_coluna(char *nomeColuna, int valorReceita){
     }
     
     
-    while(fscanf(arqColunas," %s", compara) == 1){
+    while(fscanf(arqColunas," %[a-zA-Z ]s", compara) == 1){
+        
+        //Verifica se ja foi registrado alguma receita no arquivo.
+        if (contaEspacosEmString(compara) != 0) {
+            
+            for (i=0; i<contaEspacosEmString(compara); i++) {
+                //Adiciona cada espaco na coluna selecionada.
+                strConcatenada = concatenaString(compara, &space);
+                printf("String nova: %s\n",strConcatenada);
+            }
+            
+        }
+        
         contadorSeek += strlen(compara);
         
         if (strstr(nomeColuna, compara)) {
             printf("%s = %s - %lu\n",nomeColuna , compara , contadorSeek);
             fseek(arqColunas, contadorSeek , SEEK_SET);
             // Adiciona espacos ao lado do nome da coluna para que o fprintf do valor da receita nao coma espacos de colunas existentes.
-            for (int i=0; i<numDeChars+2; i++) {
+            for (i=0; i<numDeChars+2; i++) {
             fprintf(arqColunas," ");
             }
             //fscanf(arqColunas," %[a-zA-Z ]s", compara);
@@ -395,10 +419,11 @@ void escreve_receita_em_coluna(char *nomeColuna, int valorReceita){
             //fwrite("\n", sizeof(char), 1, arqColunas);
             // Adiciona o valor no arquivo.
            
-        }
+        } // end IF
         
     }
     fseek(arqColunas, 0 , SEEK_SET);
+    free(strConcatenada);
     fclose(arqColunas);
 }
 
