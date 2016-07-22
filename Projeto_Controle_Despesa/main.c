@@ -357,19 +357,34 @@ int contaEspacosEmString(char *string){
 char * concatenaString(char *s1, char *s2)
 {
     char *result = malloc(strlen(s1)+strlen(s2)+1);//+1 for the zero-terminator
+    if (result == NULL) {
+        printf("Nao conseguiu allocar memoria.");
+        abort();
+    }
     //in real code you would check for errors in malloc here
     strcpy(result, s1);
     strcat(result, s2);
     return result;
 }
 
+int checaPresencaSinal(char * string){
+    
+    int i;
+    for (i=0; string[i] != '\0'; i++) {
+        if (string[i] == '+' || string[i] == '-') {
+            return 1;
+        }
+    }
+    return 0;
+}
+
 void escreve_receita_em_coluna(char *nomeColuna, int valorReceita){
     
     //Variáveis ----------------//
-    int i;
+    int i , espacosNaString;
     char compara[51];
     char receitaStr[1024];
-    char *strConcatenada = NULL;
+    char strConcatenada[1024];
     char receitaPos = '+';
     char space = ' ';
     int numDeChars;
@@ -389,19 +404,22 @@ void escreve_receita_em_coluna(char *nomeColuna, int valorReceita){
     }
     
     
-    while(fscanf(arqColunas," %[a-zA-Z ]s", compara) == 1){
+    while(fscanf(arqColunas," %[^\n]s", compara) == 1){
         
         //Verifica se ja foi registrado alguma receita no arquivo.
         if (contaEspacosEmString(compara) != 0) {
             
-            for (i=0; i<contaEspacosEmString(compara); i++) {
-                //Adiciona cada espaco na coluna selecionada.
-                strConcatenada = concatenaString(compara, &space);
-                printf("String nova: %s\n",strConcatenada);
+            espacosNaString = contaEspacosEmString(compara);
+            
+            for (i=0; i<espacosNaString; i++) {
+                //Adiciona cada espaco na coluna selecionada e concatena.
+                strcpy(strConcatenada,concatenaString(compara, &space));
+                printf("String concatenada:%s\n",strConcatenada);
             }
             
         }
         
+        //Inicia o contador de chars da coluna desejada.
         contadorSeek += strlen(compara);
         
         if (strstr(nomeColuna, compara)) {
@@ -423,7 +441,6 @@ void escreve_receita_em_coluna(char *nomeColuna, int valorReceita){
         
     }
     fseek(arqColunas, 0 , SEEK_SET);
-    free(strConcatenada);
     fclose(arqColunas);
 }
 
