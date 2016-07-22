@@ -301,7 +301,7 @@ int testa_vetor_ponteiro_vazio(Fila *f[]){
 
 //CRIANDO ARQUIVO COLUNA
 
-void escreve_arquivo_coluna(char *nomeColuna){
+void escreve_coluna_em_receita(char *nomeColuna){
     
     unsigned long int numLetras;
     
@@ -336,7 +336,7 @@ void escreve_receita_em_coluna(char *nomeColuna, int valorReceita){
         abort();
     }
     
-    //numLetras = strlen(nomeColuna);
+    
     while(fscanf(arqColunas," %[a-zA-Z ]s", compara) == 1){
         contadorSeek += strlen(compara);
         
@@ -344,10 +344,12 @@ void escreve_receita_em_coluna(char *nomeColuna, int valorReceita){
             printf("%s = %s - %lu\n",nomeColuna , compara , contadorSeek);
             contadorSeek += 2;
             fseek(arqColunas, contadorSeek , SEEK_SET);
+            //fwrite(&valorReceita, 1, 10, arqColunas);
             fprintf(arqColunas, " %d" , valorReceita);
         }
         
     }
+    fseek(arqColunas, 0 , SEEK_SET);
     fclose(arqColunas);
 }
 
@@ -509,7 +511,7 @@ void chama_menu_switch(Fila *f[], int n){
                 }
                 
                 f[a] = fila_cria();
-                escreve_arquivo_coluna(f[a]->nome);
+                escreve_coluna_em_receita(f[a]->nome);
                 printf("- %s - Criada com sucesso!\n\n",f[a]->nome);
                 a++;
                 break;
