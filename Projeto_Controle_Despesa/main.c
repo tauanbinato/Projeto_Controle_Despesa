@@ -323,29 +323,78 @@ void escreve_coluna_em_receita(char *nomeColuna){
 }
 
 
-// INSERINDO RECEITA EM ARQUIVO COLUNA
+// INSERINDO RECEITA EM ARQUIVO COLUNA -----------------------------//
+
+void converteIntParaString(int valorReceita , char *string){
+    
+    sprintf(string, "%d",valorReceita);
+    return;
+}
+
+int contaString(char *string){
+    
+    int i = 0;
+    int contador = 0;
+    for (i = 0; string[i] != '\0'; i++) {
+        contador++;
+    }
+    return contador;
+}
+
+int contaEspacosEmString(char *string){
+    
+    int i = 0;
+    int contador = 0;
+    for (i=0; string[i] != '\0'; i++) {
+        if (string[i] == ' ') {
+            contador++;
+        }
+        
+    }
+    return contador;
+}
 
 void escreve_receita_em_coluna(char *nomeColuna, int valorReceita){
     
-    //unsigned long int numLetras;
+    //Variáveis ----------------//
     char compara[51];
+    char receitaStr[1024];
+    char receitaPos = '+';
+    int numDeChars;
     unsigned long int contadorSeek = 0;
     
+    
+    //Pré-Calls ----------------//
+    converteIntParaString(valorReceita,receitaStr);
+    numDeChars = contaString(receitaStr);
+    
+    printf("Numero de chars de %s : %d\n",receitaStr , numDeChars);
+    
+    //Abertura-Arquivos --------//
     FILE *arqColunas = fopen("//Users//tauanflores//Desktop//PControl-Despesas//colunas.txt", "r+b");
     if (arqColunas == NULL) {
         abort();
     }
     
     
-    while(fscanf(arqColunas," %[a-zA-Z ]s", compara) == 1){
+    while(fscanf(arqColunas," %s", compara) == 1){
         contadorSeek += strlen(compara);
         
         if (strstr(nomeColuna, compara)) {
             printf("%s = %s - %lu\n",nomeColuna , compara , contadorSeek);
-            contadorSeek += 2;
             fseek(arqColunas, contadorSeek , SEEK_SET);
-            //fwrite(&valorReceita, 1, 10, arqColunas);
-            fprintf(arqColunas, " %d" , valorReceita);
+            // Adiciona espacos ao lado do nome da coluna para que o fprintf do valor da receita nao coma espacos de colunas existentes.
+            for (int i=0; i<numDeChars+2; i++) {
+            fprintf(arqColunas," ");
+            }
+            //fscanf(arqColunas," %[a-zA-Z ]s", compara);
+            fseek(arqColunas, ((contadorSeek+numDeChars+2) - numDeChars) , SEEK_SET);
+            fprintf(arqColunas,"%c%d",receitaPos,valorReceita);
+            
+            //Pula uma linha p/ proximo append
+            //fwrite("\n", sizeof(char), 1, arqColunas);
+            // Adiciona o valor no arquivo.
+           
         }
         
     }
