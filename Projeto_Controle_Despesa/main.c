@@ -527,10 +527,10 @@ int load_program(Fila *f[] , int *n , struct dirent * arq){
     return 0;
 }
 
-void chama_menu_switch(Fila *f[], int n){
+void chama_menu_switch(Fila *f[], int n , int *pA){
     
     char s[3];
-    char confi , c1,c2;
+    char confi ,c1,c2;
     int i,y,x,a,z,ok;
     double r;
     a = 0;
@@ -648,10 +648,11 @@ void chama_menu_switch(Fila *f[], int n){
                     break;
                 }
                 
-                f[a] = fila_cria();
-                cria_arquivo_da_coluna(f[a]->nome);
+                f[*pA] = fila_cria();
+                cria_arquivo_da_coluna(f[*pA]->nome);
                 printf("- %s - Criada com sucesso!\n\n",f[a]->nome);
-                a++;
+                *pA = *pA + 1;
+                //a++;
                 break;
                 
             case 2:
@@ -873,12 +874,15 @@ void inicia_vetor_null(Fila *v[] , int n){
 
 int main(void) {
     
-    FILE *arquivos;
+    //Inicializaçoes-------------------------------//
     Fila *v[MAX];
     inicia_vetor_null(v , MAX);
+    
+    //Controle de atualizacoes dos vetores.--------//
     int n = 0;
     int *pN = &n;
-    // LOAD DOS ARQUIVOS ***********************************************************************************
+    
+    // LOAD DOS ARQUIVOS --------------------------//
     DIR *dir;
     if((dir = opendir("//Users//tauanflores//Desktop//PControl-Despesas//")) != NULL) {
         /* print all the files and directories within directory */
@@ -888,16 +892,13 @@ int main(void) {
         }
         closedir (dir);
     } else {
-        /* could not open directory */
         perror ("");
         return EXIT_FAILURE;
     }
-    // FIM LOAD DOS ARQUIVOS ***********************************************************************************
+    // FIM LOAD DOS ARQUIVOS ----------------------//
     
-    
-    
-    
-    chama_menu_switch(v,MAX);
+    //Chama menu-----------------------------------//
+    chama_menu_switch(v,MAX,pN);
     
     
     return 0;
