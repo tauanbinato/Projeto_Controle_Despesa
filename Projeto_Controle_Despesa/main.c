@@ -520,8 +520,6 @@ int load_program(Fila *f[] , int *n , struct dirent * arq){
         
         return 1;
         
-    }else{
-        printf("Arquivo controle.txt nao encontrado.");
     }
     }
     return 0;
@@ -870,22 +868,12 @@ void inicia_vetor_null(Fila *v[] , int n){
     
 }
 
-
-
-int main(void) {
-    
-    //Inicializaçoes-------------------------------//
-    Fila *v[MAX];
-    inicia_vetor_null(v , MAX);
-    
-    //Controle de atualizacoes dos vetores.--------//
-    int n = 0;
-    int *pN = &n;
+int reload(int *pN , DIR * dir , Fila *v[]){
     
     // LOAD DOS ARQUIVOS --------------------------//
-    DIR *dir;
     if((dir = opendir("//Users//tauanflores//Desktop//PControl-Despesas//")) != NULL) {
         /* print all the files and directories within directory */
+        printf("Carregando arquivos no diretório...\n");
         while ((ent = readdir (dir)) != NULL) {
             printf ("%s\n", ent->d_name);
             load_program(v,pN,ent);
@@ -896,6 +884,21 @@ int main(void) {
         return EXIT_FAILURE;
     }
     // FIM LOAD DOS ARQUIVOS ----------------------//
+    return 1;
+}
+
+int main(void) {
+    
+    //Inicializaçoes-------------------------------//
+    Fila *v[MAX];
+    inicia_vetor_null(v , MAX);
+    DIR *dir;
+    
+    //Controle de atualizacoes dos vetores.--------//
+    int n = 0;
+    int *pN = &n;
+    
+    reload(pN , dir , v);
     
     //Chama menu-----------------------------------//
     chama_menu_switch(v,MAX,pN);
