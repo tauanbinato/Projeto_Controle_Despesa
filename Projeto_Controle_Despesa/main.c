@@ -18,6 +18,8 @@
 
 #define MAX 40
 
+int reload(int *pN , DIR * dir , Fila *v[]);
+
 typedef struct ElementoD{
     
     double valor;
@@ -67,6 +69,7 @@ Fila *fila_cria(void){
     
     char aux[51];
     int a;
+    
     Fila *f = malloc(sizeof(Fila));
     if (f == NULL) {
         abort();
@@ -197,10 +200,14 @@ int fila_pop(Fila *f, double *x){
     return 1;
 }
 
-void exibe_nome_fila(Fila **f , int n){
+void exibe_nome_fila(Fila **f , int n , int *pA){
     
     int i = 0;
     Fila *aux;
+    DIR *dir;
+    
+    reload(pA, dir, f);
+    
     for (aux = f[i] ; f[i] != NULL; i++) {
         
         printf("%d - %s\n",i,f[i]->nome);
@@ -659,7 +666,7 @@ void chama_menu_switch(Fila *f[], int n , int *pA){
                     break;
                 }
                 printf("Selecione o numero da coluna que deseja destruir por completo:\n");
-                exibe_nome_fila(f,n);
+                exibe_nome_fila(f,n,pA);
                 scanf(" %d",&x);
                 if(testa_se_existe_em_vetor(f,x)){
                     printf("Tem certeza que deseja deletar %s por completo?[Y/N]\n",f[x]->nome);
@@ -686,7 +693,7 @@ void chama_menu_switch(Fila *f[], int n , int *pA){
                     break;
                 }
                 printf("Selecione em qual coluna deseja inserir uma receita:\n");
-                exibe_nome_fila(f, n);
+                exibe_nome_fila(f,n,pA);
                 scanf(" %d",&y);
                 if(testa_se_existe_em_vetor(f,y)){
                     printf("Entre um valor :\n");
@@ -706,7 +713,7 @@ void chama_menu_switch(Fila *f[], int n , int *pA){
                     break;
                 }
                 printf("Selecione em qual coluna deseja remover uma receita:\n");
-                exibe_nome_fila(f, n);
+                exibe_nome_fila(f, n , pA);
                 scanf(" %d",&y);
                 fila_exibe(f[y]);
                 printf("Tem certeza que deseja remover o primeiro valor?[Y/N]\n");
@@ -730,7 +737,7 @@ void chama_menu_switch(Fila *f[], int n , int *pA){
                     break;
                 }
                 printf("\n- Lista de colunas criadas:\n");
-                exibe_nome_fila(f, n);
+                exibe_nome_fila(f, n , pA);
                 printf("\n");
                 break;
                 
@@ -740,7 +747,7 @@ void chama_menu_switch(Fila *f[], int n , int *pA){
                     break;
                 }
                 printf("Selecione em qual coluna deseja remover uma despesa:\n");
-                exibe_nome_fila(f, n);
+                exibe_nome_fila(f, n , pA);
                 scanf(" %d",&y);
                 if(testa_se_existe_em_vetor(f,y)){
                     if (testa_existe_despesa(f[y])) {
@@ -780,7 +787,7 @@ void chama_menu_switch(Fila *f[], int n , int *pA){
                     break;
                 }
                 printf("Selecione em qual coluna deseja inserir um valor de despesa:\n");
-                exibe_nome_fila(f, n);
+                exibe_nome_fila(f, n , pA);
                 scanf(" %d",&y);
                 if(testa_se_existe_em_vetor(f,y)){
                     printf("Selecione um valor:\n");
@@ -803,7 +810,7 @@ void chama_menu_switch(Fila *f[], int n , int *pA){
                     break;
                 }
                 printf("\n- Escolha uma coluna para visualizar suas despesas:\n");
-                exibe_nome_fila(f, n);
+                exibe_nome_fila(f, n , pA);
                 scanf(" %d",&y);
                 if(testa_se_existe_em_vetor(f,y)){
                     
@@ -820,7 +827,7 @@ void chama_menu_switch(Fila *f[], int n , int *pA){
                     break;
                 }
                 printf("\n- Escolha uma coluna para visualizar suas receitas:\n");
-                exibe_nome_fila(f, n);
+                exibe_nome_fila(f, n , pA);
                 scanf(" %d",&y);
                 if(testa_se_existe_em_vetor(f,y)){
                     
@@ -837,7 +844,7 @@ void chama_menu_switch(Fila *f[], int n , int *pA){
                     break;
                 }
                 printf("\n- Escolha uma coluna para calcular o lucro baseado nas receitas e despesas:\n");
-                exibe_nome_fila(f, n);
+                exibe_nome_fila(f, n , pA);
                 scanf(" %d",&y);
                 if(testa_se_existe_em_vetor(f,y)){
                     
@@ -873,9 +880,8 @@ int reload(int *pN , DIR * dir , Fila *v[]){
     // LOAD DOS ARQUIVOS --------------------------//
     if((dir = opendir("//Users//tauanflores//Desktop//PControl-Despesas//")) != NULL) {
         /* print all the files and directories within directory */
-        printf("Carregando arquivos no diretório...\n");
         while ((ent = readdir (dir)) != NULL) {
-            printf ("%s\n", ent->d_name);
+            //printf ("%s\n", ent->d_name);
             load_program(v,pN,ent);
         }
         closedir (dir);
