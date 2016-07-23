@@ -11,6 +11,10 @@
 #include "fila-h.h"
 #include <string.h>
 #include <math.h>
+#include <unistd.h>
+#include <dirent.h>
+#include <string.h>
+#include <sys/stat.h>
 
 #define MAX 40
 
@@ -38,6 +42,8 @@ struct Fila{
     ElementoD *finalD;
     
 };
+
+struct dirent *ent;
 
 int verifica_nome(char *s){
     
@@ -301,33 +307,33 @@ int testa_vetor_ponteiro_vazio(Fila *f[]){
 
 //CRIANDO ARQUIVO COLUNA
 
-void escreve_coluna_em_receita(char *nomeColuna){
+void cria_arquivo_da_coluna(char *nomeColuna){
     
-    unsigned long int numLetras;
+    //unsigned long int numLetras;
     
-    FILE *arqColunas = fopen("//Users//tauanflores//Desktop//PControl-Despesas//colunas.txt", "a+");
+    char root[102] = "//Users//tauanflores//Desktop//PControl-Despesas//";
+    char fileName[102];
+    strcpy(fileName, nomeColuna);
+    strcat(fileName, ".txt");
+    strcat(root, fileName);
     
-    if (arqColunas == NULL) {
-        printf("Nao abriu colunas.txt");
+    
+    FILE *file = fopen(root, "a+");
+    if (file == NULL) {
+        printf("Nao abriu %s\n",fileName);
     }
     
-//    //Insere linha inicial
-    fwrite("\n", sizeof(char), 1, arqColunas);
-    
-    numLetras = strlen(nomeColuna);
-    if(fwrite(nomeColuna, 1, numLetras, arqColunas) == 0){
-        printf("Ocorreu um erro ao escrever no arquivo colunas.txt");
-    }
-    
-    //Pula uma linha p/ proximo append
-    fwrite("\n", sizeof(char), 1, arqColunas);
-    
-    //Fecha arquivo
-    fclose(arqColunas);
+    fclose(file);
 }
 
 
 // INSERINDO RECEITA EM ARQUIVO COLUNA + FUNCOES RELACIONADAS-----------------------------//
+
+void removeSubstring(char *s,const char *toremove)
+{
+    while( (s=strstr(s,toremove)) )
+        memmove(s,s+strlen(toremove),1+strlen(s+strlen(toremove)));
+}
 
 void converteIntParaString(int valorReceita , char *string){
     
@@ -402,13 +408,11 @@ char * retornaStringLimpa(char * string , unsigned long int n){
 void escreve_receita_em_coluna(char *nomeColuna, int valorReceita){
     
     //Variáveis ----------------//
-    int i;
-    char compara[51];
     char receitaStr[1024];
     char auxNomeColuna[1024];
     char receitaPos = '+';
     int numDeChars;
-    unsigned long int contadorSeek = 1 , tamanhoString;
+
     
     
     //Pré-Calls ----------------//
@@ -416,67 +420,37 @@ void escreve_receita_em_coluna(char *nomeColuna, int valorReceita){
     numDeChars = contaString(receitaStr);
     
     //Abertura-Arquivos --------//
-    FILE *arqColunas = fopen("//Users//tauanflores//Desktop//PControl-Despesas//colunas.txt", "r+b");
+    char root[102] = "//Users//tauanflores//Desktop//PControl-Despesas//";
+    char fileName[102];
+    strcpy(fileName, nomeColuna);
+    strcat(fileName, ".txt");
+    strcat(root, fileName);
+
+    FILE *arqColunas = fopen(root,"a");
     if (arqColunas == NULL) {
+        printf("File %s nao encontrada.",nomeColuna);
         abort();
     }
     
     //Faz copias necessarias
     strcpy(auxNomeColuna, nomeColuna);
     
-    //COMECA LEITURAS ----------------------------------------//
-    fseek(arqColunas, 0 , SEEK_SET);
-    while(fscanf(arqColunas," %[^\n]s",compara) == 1){
-        
-        //Captura tamanho string
-        tamanhoString = strlen(compara);
-        
-        //Inicia o contador de chars da coluna desejada.
-        contadorSeek += tamanhoString;
-        
-        if (checaPresencaSinal(compara) != 0) {
-            
-            strcpy(auxNomeColuna, compara);
-            
-        }
-        
-        //Testa se encontra coluna desejada.
-        if (strcmp(compara,nomeColuna) || (strcmp(compara,auxNomeColuna)) == 0) {
-            printf("compara:%s\nnomeColuna:%s\nauxNomeColuna:%s\n",compara,nomeColuna,auxNomeColuna);
-            fseek(arqColunas, contadorSeek , SEEK_SET);
-            
-            // Adiciona espacos ao lado do nome da coluna para que o fprintf do valor da receita nao coma espacos de colunas existentes.
-            for (i=0; i<numDeChars+2; i++) {
-            fprintf(arqColunas," ");
-                
-            }
-            
-            //fscanf(arqColunas," %[a-zA-Z ]s", compara);
-            fseek(arqColunas, ((contadorSeek+numDeChars+2) - numDeChars) , SEEK_SET);
-            fprintf(arqColunas,"%c%d",receitaPos,valorReceita);
-            //Pula uma linha p/ proximo append
-            //fwrite("\n", sizeof(char), 1, arqColunas);
-            // Adiciona o valor no arquivo.
-           
-        } // end IF
-        else{
-            printf("Strings NAO IGUAIS.");
-        }
-        
-    }
-    fseek(arqColunas, 0 , SEEK_SET);
+    fprintf(arqColunas,"%c%d\n",receitaPos,valorReceita);
     fclose(arqColunas);
 }
 
 
 // LOAD DOS ARQUIVOS ***********************************************************************************
 
+ 
 Fila *fila_cria_load(char *string){
     
     Fila *f = malloc(sizeof(Fila));
     if (f == NULL) {
         abort();
     }
+    
+    removeSubstring(string, ".txt");
     strcpy(f->nome, string);
     
     f->ini = f->final = NULL;
@@ -485,23 +459,56 @@ Fila *fila_cria_load(char *string){
     return f;
 }
 
-int load_program(Fila *f[] , int n , FILE * arqColunas){
+int procura_txt(struct dirent *a){
     
-    char string[51];
-    int i = 0;
+    int i;
+    unsigned long int nStr;
+    char aux[102];
+    strcpy(aux, a->d_name);
+    nStr = strlen(aux);
+    for (i=0; i<nStr; i++) {
+        if (aux[i] == '.') {
+            if (aux[i+1] == 't') {
+                if (aux[i+2] == 'x') {
+                    if (aux[i+3] == 't') {
+                        return 1;
+                    }
+                }
+            }else{
+                return 0;
+            }
+        }
+    }
+    return 0;
+}
+
+int load_program(Fila *f[] , int n , struct dirent * arq){
     
-    arqColunas = fopen("//Users//tauanflores//Desktop//PControl-Despesas//colunas.txt", "r");
-    if (arqColunas == NULL) {
+    
+    //Se achar o txt
+    if (procura_txt(arq)) {
+        printf("achou txt\n");
+        
+        //Abertura-Arquivos --------//
+        char root[102] = "//Users//tauanflores//Desktop//PControl-Despesas//";
+        char fileName[102];
+        strcpy(fileName, arq->d_name);
+        strcat(root, fileName);
+        
+        FILE *arqColunas = fopen(root,"r");
+        if (arqColunas == NULL) {
+            printf("File %s nao encontrada.",fileName);
+            abort();
+        }
+        
+        f[n] = fila_cria_load(arq->d_name);
+        n++;
+        return 1;
+    }
+    
+    else{
         return 0;
     }
-    
-    while(fscanf(arqColunas, " %[a-zA-Z ]s",string) == 1){
-    f[i] = fila_cria_load(string);
-    i++;
-    }
-    fclose(arqColunas);
-    return 1;
-    
 }
 
 void chama_menu_switch(Fila *f[], int n){
@@ -626,7 +633,7 @@ void chama_menu_switch(Fila *f[], int n){
                 }
                 
                 f[a] = fila_cria();
-                escreve_coluna_em_receita(f[a]->nome);
+                cria_arquivo_da_coluna(f[a]->nome);
                 printf("- %s - Criada com sucesso!\n\n",f[a]->nome);
                 a++;
                 break;
@@ -850,10 +857,29 @@ void inicia_vetor_null(Fila *v[] , int n){
 
 int main(void) {
     
-    FILE *arqColunas;
+    FILE *arquivos;
     Fila *v[MAX];
     inicia_vetor_null(v , MAX);
-    load_program(v,MAX,arqColunas);
+    int n = 0;
+    // LOAD DOS ARQUIVOS ***********************************************************************************
+    DIR *dir;
+    if((dir = opendir("//Users//tauanflores//Desktop//PControl-Despesas//")) != NULL) {
+        /* print all the files and directories within directory */
+        while ((ent = readdir (dir)) != NULL) {
+            printf ("%s\n", ent->d_name);
+            load_program(v,n,ent);
+        }
+        closedir (dir);
+    } else {
+        /* could not open directory */
+        perror ("");
+        return EXIT_FAILURE;
+    }
+    // FIM LOAD DOS ARQUIVOS ***********************************************************************************
+    
+    
+    
+    
     chama_menu_switch(v,MAX);
     
     
