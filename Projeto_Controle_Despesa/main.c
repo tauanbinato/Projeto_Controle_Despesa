@@ -11,6 +11,10 @@
 #include "fila-h.h"
 #include <string.h>
 #include <math.h>
+#include <unistd.h>
+#include <dirent.h>
+#include <string.h>
+#include <sys/stat.h>
 
 #define MAX 40
 
@@ -38,6 +42,8 @@ struct Fila{
     ElementoD *finalD;
     
 };
+
+struct dirent *ent;
 
 int verifica_nome(char *s){
     
@@ -301,61 +307,165 @@ int testa_vetor_ponteiro_vazio(Fila *f[]){
 
 //CRIANDO ARQUIVO COLUNA
 
-void escreve_arquivo_coluna(char *nomeColuna){
+int escreve_arquivo_no_arqControle(char *nomeColuna){
     
-    unsigned long int numLetras;
-    
-    FILE *arqColunas = fopen("//Users//tauanflores//Desktop//PControl-Despesas//colunas.txt", "a+");
-    
-    if (arqColunas == NULL) {
-        printf("Nao abriu colunas.txt");
-    }
-    numLetras = strlen(nomeColuna);
-    if(fwrite(nomeColuna, 1, numLetras, arqColunas) == 0){
-        printf("Ocorreu um erro ao escrever no arquivo colunas.txt");
-    }
-    
-    //Pula uma linha p/ proximo append
-    fwrite("\n", sizeof(char), 1, arqColunas);
-    
-    //Fecha arquivo
-    fclose(arqColunas);
-}
-
-
-// INSERINDO RECEITA EM ARQUIVO COLUNA
-
-void escreve_receita_em_coluna(char *nomeColuna, int valorReceita){
-    
-    //unsigned long int numLetras;
-    char compara[51];
-    
-    FILE *arqColunas = fopen("//Users//tauanflores//Desktop//PControl-Despesas//colunas.txt", "r+");
-    if (arqColunas == NULL) {
+    FILE *controle = fopen("//Users//tauanflores//Desktop//PControl-Despesas//controle.txt", "a+");
+    if (controle == NULL) {
+        printf("Nao abriu controle.txt");
         abort();
     }
     
-    //numLetras = strlen(nomeColuna);
-    while(fscanf(arqColunas," %[a-zA-Z ]s", compara) == 1){
-        
-        if (strstr(nomeColuna, compara)) {
-            printf("%s = %s",nomeColuna , compara);
-            fprintf(arqColunas, " %d" , valorReceita);
+    fprintf(controle, "%s\n", nomeColuna);
+    fclose(controle);
+    return 0;
+}
+
+void cria_arquivo_da_coluna(char *nomeColuna){
+    
+    //unsigned long int numLetras;
+    
+    char root[102] = "//Users//tauanflores//Desktop//PControl-Despesas//";
+    char fileName[102];
+    strcpy(fileName, nomeColuna);
+    strcat(fileName, ".txt");
+    strcat(root, fileName);
+    
+    
+    FILE *file = fopen(root, "a+");
+    if (file == NULL) {
+        printf("Nao abriu %s\n",fileName);
+    }
+    
+    escreve_arquivo_no_arqControle(nomeColuna);
+    
+    fclose(file);
+}
+
+
+// INSERINDO RECEITA EM ARQUIVO COLUNA + FUNCOES RELACIONADAS-----------------------------//
+
+void removeSubstring(char *s,const char *toremove)
+{
+    while( (s=strstr(s,toremove)) )
+        memmove(s,s+strlen(toremove),1+strlen(s+strlen(toremove)));
+}
+
+void converteIntParaString(int valorReceita , char *string){
+    
+    sprintf(string, "%d",valorReceita);
+    return;
+}
+
+int contaString(char *string){
+    
+    int i = 0;
+    int contador = 0;
+    for (i = 0; string[i] != '\0'; i++) {
+        contador++;
+    }
+    return contador;
+}
+
+int contaEspacosEmString(char *string){
+    
+    int i = 0;
+    int contador = 0;
+    for (i=0; string[i] != '\0'; i++) {
+        if (string[i] == ' ') {
+            contador++;
         }
         
     }
+    return contador;
+}
+
+char * concatenaString(char *s1, char *s2)
+{
+    char *result = malloc(strlen(s1)+strlen(s2)+1);//+1 for the zero-terminator
+    if (result == NULL) {
+        printf("Nao conseguiu allocar memoria.");
+        abort();
+    }
+    //in real code you would check for errors in malloc here
+    strcpy(result, s1);
+    strcat(result, s2);
+    return result;
+}
+
+int checaPresencaSinal(char * string){
+    
+    int i;
+    for (i=0; string[i] != '\0'; i++) {
+        if (string[i] == '+' || string[i] == '-') {
+            return 1;
+        }
+    }
+    return 0;
+}
+
+char * retornaStringLimpa(char * string , unsigned long int n){
+    
+    int i;
+    for (i=0; string[i] != '\0'; i++) {
+        if (string[i] == ' ') {
+            string[i] = '\0';
+        }
+    }
+    
+    char *nova = malloc(sizeof(char *)*n);
+    if (nova == NULL) {
+        abort();
+    }
+    
+    return nova;
+}
+
+void escreve_receita_em_coluna(char *nomeColuna, int valorReceita){
+    
+    //Variáveis ----------------//
+    char receitaStr[1024];
+    char auxNomeColuna[1024];
+    char receitaPos = '+';
+    int numDeChars;
+
+    
+    
+    //Pré-Calls ----------------//
+    converteIntParaString(valorReceita,receitaStr);
+    numDeChars = contaString(receitaStr);
+    
+    //Abertura-Arquivos --------//
+    char root[102] = "//Users//tauanflores//Desktop//PControl-Despesas//";
+    char fileName[102];
+    strcpy(fileName, nomeColuna);
+    strcat(fileName, ".txt");
+    strcat(root, fileName);
+
+    FILE *arqColunas = fopen(root,"a");
+    if (arqColunas == NULL) {
+        printf("File %s nao encontrada.",nomeColuna);
+        abort();
+    }
+    
+    //Faz copias necessarias
+    strcpy(auxNomeColuna, nomeColuna);
+    
+    fprintf(arqColunas,"%c%d\n",receitaPos,valorReceita);
     fclose(arqColunas);
 }
 
 
 // LOAD DOS ARQUIVOS ***********************************************************************************
 
+ 
 Fila *fila_cria_load(char *string){
     
     Fila *f = malloc(sizeof(Fila));
     if (f == NULL) {
         abort();
     }
+    
+    removeSubstring(string, ".txt");
     strcpy(f->nome, string);
     
     f->ini = f->final = NULL;
@@ -364,29 +474,63 @@ Fila *fila_cria_load(char *string){
     return f;
 }
 
-int load_program(Fila *f[] , int n , FILE * arqColunas){
+//poderia ter utilizado strstr
+int procura_txt(struct dirent *a){
     
-    char string[51];
-    int i = 0;
-    
-    arqColunas = fopen("//Users//tauanflores//Desktop//PControl-Despesas//colunas.txt", "r");
-    if (arqColunas == NULL) {
-        return 0;
+    int i;
+    unsigned long int nStr;
+    char aux[102];
+    strcpy(aux, a->d_name);
+    nStr = strlen(aux);
+    for (i=0; i<nStr; i++) {
+        if (aux[i] == '.') {
+            if (aux[i+1] == 't') {
+                if (aux[i+2] == 'x') {
+                    if (aux[i+3] == 't') {
+                        return 1;
+                    }
+                }
+            }else{
+                return 0;
+            }
+        }
     }
-    
-    while(fscanf(arqColunas, " %[a-zA-Z ]s",string) == 1){
-    f[i] = fila_cria_load(string);
-    i++;
-    }
-    fclose(arqColunas);
-    return 1;
-    
+    return 0;
 }
 
-void chama_menu_switch(Fila *f[], int n){
+int load_program(Fila *f[] , int *n , struct dirent * arq){
+    
+    int i = 0;
+    char string[102];
+    if (procura_txt(arq)) {
+        
+    //Procura o controle.
+    if (strcmp(arq->d_name, "controle.txt")) {
+        FILE *arqControle = fopen("//Users//tauanflores//Desktop//PControl-Despesas//controle.txt","r");
+        if (arqControle == NULL) {
+            printf("Nao abriu controle.txt\n");
+            abort();
+        }
+        
+        while (fscanf(arqControle, " %[^\n]s",string) == 1) {
+            f[i] = fila_cria_load(string);
+            i++;
+        }
+        
+        
+        return 1;
+        
+    }else{
+        printf("Arquivo controle.txt nao encontrado.");
+    }
+    }
+    return 0;
+}
+
+void chama_menu_switch(Fila *f[], int n , int *pA){
     
     char s[3];
-    char confi , c1,c2;
+    char confi ,c1,c2;
     int i,y,x,a,z,ok;
     double r;
     a = 0;
@@ -504,10 +648,11 @@ void chama_menu_switch(Fila *f[], int n){
                     break;
                 }
                 
-                f[a] = fila_cria();
-                escreve_arquivo_coluna(f[a]->nome);
+                f[*pA] = fila_cria();
+                cria_arquivo_da_coluna(f[*pA]->nome);
                 printf("- %s - Criada com sucesso!\n\n",f[a]->nome);
-                a++;
+                *pA = *pA + 1;
+                //a++;
                 break;
                 
             case 2:
@@ -728,12 +873,32 @@ void inicia_vetor_null(Fila *v[] , int n){
 
 
 int main(void) {
-    //
-    FILE *arqColunas;
+    
+    //Inicializaçoes-------------------------------//
     Fila *v[MAX];
     inicia_vetor_null(v , MAX);
-    load_program(v,MAX,arqColunas);
-    chama_menu_switch(v,MAX);
+    
+    //Controle de atualizacoes dos vetores.--------//
+    int n = 0;
+    int *pN = &n;
+    
+    // LOAD DOS ARQUIVOS --------------------------//
+    DIR *dir;
+    if((dir = opendir("//Users//tauanflores//Desktop//PControl-Despesas//")) != NULL) {
+        /* print all the files and directories within directory */
+        while ((ent = readdir (dir)) != NULL) {
+            printf ("%s\n", ent->d_name);
+            load_program(v,pN,ent);
+        }
+        closedir (dir);
+    } else {
+        perror ("");
+        return EXIT_FAILURE;
+    }
+    // FIM LOAD DOS ARQUIVOS ----------------------//
+    
+    //Chama menu-----------------------------------//
+    chama_menu_switch(v,MAX,pN);
     
     
     return 0;
