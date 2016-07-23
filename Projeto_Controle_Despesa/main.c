@@ -20,6 +20,7 @@
 
 int reload(int *pN , DIR * dir , Fila *v[]);
 int deleta_arquivo_no_arqControle(char *nomeColuna);
+int renomear_arquivo(char *str1 , char *str2);
 
 typedef struct ElementoD{
     
@@ -104,6 +105,25 @@ int fila_vazia_despesa(Fila *f){
     return f->iniD == NULL;
 }
 
+int destroi_arquivo(FILE *arq ,char *path , char *string){
+    
+    int ret;
+    strcat(path, string);
+    
+    arq = fopen(path, "w");
+    
+    ret = remove(path);
+    
+    if(ret == 0)
+    {
+        return 1;
+    }
+    else
+    {
+        printf("Error: nao foi possivel deletar o arquivo.\n");
+        return 0;
+    }
+}
 
 void fila_destroi (Fila *f){
     
@@ -134,7 +154,7 @@ void fila_destroi (Fila *f){
     
     deleta_arquivo_no_arqControle(f->nome);
     
-    
+    fclose(fp);
     //Fim Parte do Arquivo--------//
     
     //*****************************
@@ -353,6 +373,7 @@ int testa_vetor_ponteiro_vazio(Fila *f[]){
 
 int deleta_arquivo_no_arqControle(char *nomeColuna){
     
+    char path[102] = "//Users//tauanflores//Desktop//PControl-Despesas//";
     FILE *controle = fopen("//Users//tauanflores//Desktop//PControl-Despesas//controle.txt", "r");
     if (controle == NULL) {
         printf("Nao abriu controle.txt");
@@ -377,6 +398,8 @@ int deleta_arquivo_no_arqControle(char *nomeColuna){
         fprintf(controle2, "%s",string);
         fclose(controle2);
     }
+    destroi_arquivo(controle,path,"controle.txt");
+    renomear_arquivo("//Users//tauanflores//Desktop//PControl-Despesas//controle2.txt", "//Users//tauanflores//Desktop//PControl-Despesas//controle.txt");
     fclose(controle);
     return 0;
 }
@@ -417,6 +440,26 @@ void cria_arquivo_da_coluna(char *nomeColuna){
 
 
 // INSERINDO RECEITA EM ARQUIVO COLUNA + FUNCOES RELACIONADAS-----------------------------//
+
+int renomear_arquivo(char *str1 , char *str2){
+    
+    int ret;
+    
+    
+    ret = rename(str1, str2);
+    
+    if(ret == 0)
+    {
+        printf("File renamed successfully");
+        return 1;
+    }
+    else
+    {
+        printf("Error: unable to rename the file");
+        return 0;
+    }
+    
+}
 
 void removeSubstring(char *s,const char *toremove)
 {
