@@ -353,24 +353,29 @@ int testa_vetor_ponteiro_vazio(Fila *f[]){
 
 int deleta_arquivo_no_arqControle(char *nomeColuna){
     
-    FILE *controle = fopen("//Users//tauanflores//Desktop//PControl-Despesas//controle.txt", "r+b");
+    FILE *controle = fopen("//Users//tauanflores//Desktop//PControl-Despesas//controle.txt", "r");
     if (controle == NULL) {
         printf("Nao abriu controle.txt");
         abort();
     }
-    char auxNomeColuna[102];
+   
+    char string[102];
+    unsigned long int strLen;
     
-    int contadorSeek = 0;
-    unsigned long int lenNomeColuna = strlen(nomeColuna);
-    while (fscanf(controle, " %[^\n]s",auxNomeColuna) == 1) {
-        contadorSeek += strlen(auxNomeColuna);
-        if (strcmp(auxNomeColuna, nomeColuna)) {
-            printf("contador:%d\n",contadorSeek);
-            fseek(controle ,contadorSeek - lenNomeColuna, SEEK_SET);
-            fprintf(controle, " ");
-            fclose(controle);
-            return 1;
+    while (fscanf(controle, " %[^\n ]s",string) == 1) {
+        
+        FILE *controle2 = fopen("//Users//tauanflores//Desktop//PControl-Despesas//controle2.txt", "a+");
+        if (controle2 == NULL) {
+            printf("Nao abriu controle2.txt");
+            abort();
         }
+        
+        strLen = strlen(string);
+        if (strcmp(string, nomeColuna) == 0) {
+            fgets(string, sizeof(string), controle);
+        }
+        fprintf(controle2, "%s",string);
+        fclose(controle2);
     }
     fclose(controle);
     return 0;
