@@ -106,6 +106,39 @@ int fila_vazia_despesa(Fila *f){
 
 void fila_destroi (Fila *f){
     
+    //Parte do Arquivo------------//
+    
+    FILE *fp;
+    int ret;
+    char order[]="del";
+    char path[102] = "//Users//tauanflores//Desktop//PControl-Despesas//";
+    char colunaAserDestruida[102];
+    strcpy(colunaAserDestruida, f->nome);
+    strcat(colunaAserDestruida, ".txt");
+    strcat(path, colunaAserDestruida);
+    
+    fp = fopen(path, "w");
+    
+    ret = remove(path);
+    
+    if(ret == 0)
+    {
+        
+    }
+    else
+    {
+        printf("Error: nao foi possivel deletar o arquivo.\n");
+    }
+    
+    //Deleta a parte do controle.txt
+    
+    
+    
+    //Fim Parte do Arquivo--------//
+    
+    //*****************************
+    
+    //Parte do Vetor--------------//
     
     Elemento *p = f->ini;
     while (p != NULL) {
@@ -117,6 +150,9 @@ void fila_destroi (Fila *f){
     }
     free(f);
     printf("- %s deletada com sucesso!\n\n",f->nome);
+    
+    //Fim Parte do Vetor-----------//
+    
     return;
 }
 
@@ -674,7 +710,7 @@ void chama_menu_switch(Fila *f[], int n , int *pA){
                     if ((confi == 'y') || (confi == 'Y')) {
                         fila_destroi(f[x]);
                         reorganiza_vetor(f,x);
-                        a--;
+                        *pA = *pA - 1;
                         break;
                     }
                     if (confi == 'n' || confi == 'N'){
@@ -877,7 +913,7 @@ void inicia_vetor_null(Fila *v[] , int n){
 
 int reload(int *pN , DIR * dir , Fila *v[]){
     
-    // LOAD DOS ARQUIVOS --------------------------//
+    // LOAD DAS COLUNAS-ARQUIVOS --------------------------//
     if((dir = opendir("//Users//tauanflores//Desktop//PControl-Despesas//")) != NULL) {
         /* print all the files and directories within directory */
         while ((ent = readdir (dir)) != NULL) {
@@ -889,7 +925,7 @@ int reload(int *pN , DIR * dir , Fila *v[]){
         perror ("");
         return EXIT_FAILURE;
     }
-    // FIM LOAD DOS ARQUIVOS ----------------------//
+    // FIM LOAD DAS COLUNAS-ARQUIVOS ----------------------//
     return 1;
 }
 
