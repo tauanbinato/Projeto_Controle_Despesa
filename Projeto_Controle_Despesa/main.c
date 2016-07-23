@@ -445,7 +445,7 @@ void escreve_receita_em_coluna(char *nomeColuna, int valorReceita){
         
         //Testa se encontra coluna desejada.
         if (strcmp(compara,nomeColuna) || (strcmp(compara,auxNomeColuna)) == 0) {
-            strcpy(nomeColuna, aux);
+            //strcpy(nomeColuna, aux);
             printf("COLUNAS IGUAIS %s=%s,contadorSeek:%lu\n",nomeColuna , aux , contadorSeek);
             fseek(arqColunas, contadorSeek , SEEK_SET);
             
