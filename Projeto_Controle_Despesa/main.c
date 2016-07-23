@@ -19,6 +19,7 @@
 #define MAX 40
 
 int reload(int *pN , DIR * dir , Fila *v[]);
+int deleta_arquivo_no_arqControle(char *nomeColuna);
 
 typedef struct ElementoD{
     
@@ -110,7 +111,6 @@ void fila_destroi (Fila *f){
     
     FILE *fp;
     int ret;
-    char order[]="del";
     char path[102] = "//Users//tauanflores//Desktop//PControl-Despesas//";
     char colunaAserDestruida[102];
     strcpy(colunaAserDestruida, f->nome);
@@ -132,6 +132,7 @@ void fila_destroi (Fila *f){
     
     //Deleta a parte do controle.txt
     
+    deleta_arquivo_no_arqControle(f->nome);
     
     
     //Fim Parte do Arquivo--------//
@@ -350,6 +351,31 @@ int testa_vetor_ponteiro_vazio(Fila *f[]){
 
 //CRIANDO ARQUIVO COLUNA
 
+int deleta_arquivo_no_arqControle(char *nomeColuna){
+    
+    FILE *controle = fopen("//Users//tauanflores//Desktop//PControl-Despesas//controle.txt", "r+b");
+    if (controle == NULL) {
+        printf("Nao abriu controle.txt");
+        abort();
+    }
+    char auxNomeColuna[102];
+    
+    int contadorSeek = 0;
+    unsigned long int lenNomeColuna = strlen(nomeColuna);
+    while (fscanf(controle, " %[^\n]s",auxNomeColuna) == 1) {
+        contadorSeek += strlen(auxNomeColuna);
+        if (strcmp(auxNomeColuna, nomeColuna)) {
+            printf("contador:%d\n",contadorSeek);
+            fseek(controle ,contadorSeek - lenNomeColuna, SEEK_SET);
+            fprintf(controle, " ");
+            fclose(controle);
+            return 1;
+        }
+    }
+    fclose(controle);
+    return 0;
+}
+
 int escreve_arquivo_no_arqControle(char *nomeColuna){
     
     FILE *controle = fopen("//Users//tauanflores//Desktop//PControl-Despesas//controle.txt", "a+");
@@ -422,19 +448,6 @@ int contaEspacosEmString(char *string){
     return contador;
 }
 
-char * concatenaString(char *s1, char *s2)
-{
-    char *result = malloc(strlen(s1)+strlen(s2)+1);//+1 for the zero-terminator
-    if (result == NULL) {
-        printf("Nao conseguiu allocar memoria.");
-        abort();
-    }
-    //in real code you would check for errors in malloc here
-    strcpy(result, s1);
-    strcat(result, s2);
-    return result;
-}
-
 int checaPresencaSinal(char * string){
     
     int i;
@@ -446,22 +459,6 @@ int checaPresencaSinal(char * string){
     return 0;
 }
 
-char * retornaStringLimpa(char * string , unsigned long int n){
-    
-    int i;
-    for (i=0; string[i] != '\0'; i++) {
-        if (string[i] == ' ') {
-            string[i] = '\0';
-        }
-    }
-    
-    char *nova = malloc(sizeof(char *)*n);
-    if (nova == NULL) {
-        abort();
-    }
-    
-    return nova;
-}
 
 void escreve_receita_em_coluna(char *nomeColuna, int valorReceita){
     
@@ -560,11 +557,12 @@ int load_program(Fila *f[] , int *n , struct dirent * arq){
             i++;
         }
         
-        
+        fclose(arqControle);
         return 1;
         
     }
     }
+    
     return 0;
 }
 
