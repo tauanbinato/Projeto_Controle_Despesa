@@ -450,12 +450,11 @@ int renomear_arquivo(char *str1 , char *str2){
     
     if(ret == 0)
     {
-        printf("File renamed successfully");
         return 1;
     }
     else
     {
-        printf("Error: unable to rename the file");
+        printf("Error: unable to rename the file\n");
         return 0;
     }
     
