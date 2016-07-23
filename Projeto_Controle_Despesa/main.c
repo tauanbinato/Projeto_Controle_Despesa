@@ -310,6 +310,10 @@ void escreve_coluna_em_receita(char *nomeColuna){
     if (arqColunas == NULL) {
         printf("Nao abriu colunas.txt");
     }
+    
+//    //Insere linha inicial
+    fwrite("\n", sizeof(char), 1, arqColunas);
+    
     numLetras = strlen(nomeColuna);
     if(fwrite(nomeColuna, 1, numLetras, arqColunas) == 0){
         printf("Ocorreu um erro ao escrever no arquivo colunas.txt");
@@ -378,24 +382,40 @@ int checaPresencaSinal(char * string){
     return 0;
 }
 
+char * retornaStringLimpa(char * string , unsigned long int n){
+    
+    int i;
+    for (i=0; string[i] != '\0'; i++) {
+        if (string[i] == ' ') {
+            string[i] = '\0';
+        }
+    }
+    
+    char *nova = malloc(sizeof(char *)*n);
+    if (nova == NULL) {
+        abort();
+    }
+    
+    return nova;
+}
+
 void escreve_receita_em_coluna(char *nomeColuna, int valorReceita){
     
     //Variáveis ----------------//
     int i , espacosNaString;
-    char compara[51];
+    char compara[51],aux[51];
+    char * colunaLida;
     char receitaStr[1024];
-    char strConcatenada[1024];
+    char auxNomeColuna[1024];
     char receitaPos = '+';
     char space = ' ';
     int numDeChars;
-    unsigned long int contadorSeek = 0;
+    unsigned long int contadorSeek = 1 , tamanhoString;
     
     
     //Pré-Calls ----------------//
     converteIntParaString(valorReceita,receitaStr);
     numDeChars = contaString(receitaStr);
-    
-    printf("Numero de chars de %s : %d\n",receitaStr , numDeChars);
     
     //Abertura-Arquivos --------//
     FILE *arqColunas = fopen("//Users//tauanflores//Desktop//PControl-Despesas//colunas.txt", "r+b");
@@ -403,41 +423,50 @@ void escreve_receita_em_coluna(char *nomeColuna, int valorReceita){
         abort();
     }
     
+    //Faz copias necessarias
+    strcpy(auxNomeColuna, nomeColuna);
     
-    while(fscanf(arqColunas," %[^\n]s", compara) == 1){
+    //COMECA LEITURAS ----------------------------------------//
+    fseek(arqColunas, 0 , SEEK_SET);
+    while(fscanf(arqColunas," %[^\n]s",compara) == 1){
+        printf("compara:%s\nstring nomeColuna:%s\n",compara,nomeColuna);
         
-        //Verifica se ja foi registrado alguma receita no arquivo.
-        if (contaEspacosEmString(compara) != 0) {
+        //Captura tamanho string
+        tamanhoString = strlen(compara);
+        
+        //Inicia o contador de chars da coluna desejada.
+        contadorSeek += tamanhoString;
+        
+        if (checaPresencaSinal(compara) != 0) {
             
-            espacosNaString = contaEspacosEmString(compara);
-            
-            for (i=0; i<espacosNaString; i++) {
-                //Adiciona cada espaco na coluna selecionada e concatena.
-                strcpy(strConcatenada,concatenaString(compara, &space));
-                printf("String concatenada:%s\n",strConcatenada);
-            }
+            strcpy(auxNomeColuna, compara);
             
         }
         
-        //Inicia o contador de chars da coluna desejada.
-        contadorSeek += strlen(compara);
-        
-        if (strstr(nomeColuna, compara)) {
-            printf("%s = %s - %lu\n",nomeColuna , compara , contadorSeek);
+        //Testa se encontra coluna desejada.
+        if (strcmp(compara,nomeColuna) || (strcmp(compara,auxNomeColuna)) == 0) {
+            strcpy(nomeColuna, aux);
+            printf("COLUNAS IGUAIS %s=%s,contadorSeek:%lu\n",nomeColuna , aux , contadorSeek);
             fseek(arqColunas, contadorSeek , SEEK_SET);
+            
             // Adiciona espacos ao lado do nome da coluna para que o fprintf do valor da receita nao coma espacos de colunas existentes.
             for (i=0; i<numDeChars+2; i++) {
             fprintf(arqColunas," ");
+                
             }
+            
             //fscanf(arqColunas," %[a-zA-Z ]s", compara);
             fseek(arqColunas, ((contadorSeek+numDeChars+2) - numDeChars) , SEEK_SET);
             fprintf(arqColunas,"%c%d",receitaPos,valorReceita);
-            
+            printf("final-string compara:%s,string nomeColuna:%s\n",compara,nomeColuna);
             //Pula uma linha p/ proximo append
             //fwrite("\n", sizeof(char), 1, arqColunas);
             // Adiciona o valor no arquivo.
            
         } // end IF
+        else{
+            printf("Strings NAO IGUAIS.");
+        }
         
     }
     fseek(arqColunas, 0 , SEEK_SET);
