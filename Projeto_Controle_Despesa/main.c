@@ -402,13 +402,11 @@ char * retornaStringLimpa(char * string , unsigned long int n){
 void escreve_receita_em_coluna(char *nomeColuna, int valorReceita){
     
     //Variáveis ----------------//
-    int i , espacosNaString;
-    char compara[51],aux[51];
-    char * colunaLida;
+    int i;
+    char compara[51];
     char receitaStr[1024];
     char auxNomeColuna[1024];
     char receitaPos = '+';
-    char space = ' ';
     int numDeChars;
     unsigned long int contadorSeek = 1 , tamanhoString;
     
@@ -429,7 +427,6 @@ void escreve_receita_em_coluna(char *nomeColuna, int valorReceita){
     //COMECA LEITURAS ----------------------------------------//
     fseek(arqColunas, 0 , SEEK_SET);
     while(fscanf(arqColunas," %[^\n]s",compara) == 1){
-        printf("compara:%s\nstring nomeColuna:%s\n",compara,nomeColuna);
         
         //Captura tamanho string
         tamanhoString = strlen(compara);
@@ -445,8 +442,7 @@ void escreve_receita_em_coluna(char *nomeColuna, int valorReceita){
         
         //Testa se encontra coluna desejada.
         if (strcmp(compara,nomeColuna) || (strcmp(compara,auxNomeColuna)) == 0) {
-            //strcpy(nomeColuna, aux);
-            printf("COLUNAS IGUAIS %s=%s,contadorSeek:%lu\n",nomeColuna , aux , contadorSeek);
+            printf("compara:%s\nnomeColuna:%s\nauxNomeColuna:%s\n",compara,nomeColuna,auxNomeColuna);
             fseek(arqColunas, contadorSeek , SEEK_SET);
             
             // Adiciona espacos ao lado do nome da coluna para que o fprintf do valor da receita nao coma espacos de colunas existentes.
@@ -458,7 +454,6 @@ void escreve_receita_em_coluna(char *nomeColuna, int valorReceita){
             //fscanf(arqColunas," %[a-zA-Z ]s", compara);
             fseek(arqColunas, ((contadorSeek+numDeChars+2) - numDeChars) , SEEK_SET);
             fprintf(arqColunas,"%c%d",receitaPos,valorReceita);
-            printf("final-string compara:%s,string nomeColuna:%s\n",compara,nomeColuna);
             //Pula uma linha p/ proximo append
             //fwrite("\n", sizeof(char), 1, arqColunas);
             // Adiciona o valor no arquivo.
