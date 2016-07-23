@@ -307,6 +307,19 @@ int testa_vetor_ponteiro_vazio(Fila *f[]){
 
 //CRIANDO ARQUIVO COLUNA
 
+int escreve_arquivo_no_arqControle(char *nomeColuna){
+    
+    FILE *controle = fopen("//Users//tauanflores//Desktop//PControl-Despesas//controle.txt", "a+");
+    if (controle == NULL) {
+        printf("Nao abriu controle.txt");
+        abort();
+    }
+    
+    fprintf(controle, "%s\n", nomeColuna);
+    fclose(controle);
+    return 0;
+}
+
 void cria_arquivo_da_coluna(char *nomeColuna){
     
     //unsigned long int numLetras;
@@ -322,6 +335,8 @@ void cria_arquivo_da_coluna(char *nomeColuna){
     if (file == NULL) {
         printf("Nao abriu %s\n",fileName);
     }
+    
+    escreve_arquivo_no_arqControle(nomeColuna);
     
     fclose(file);
 }
@@ -459,6 +474,7 @@ Fila *fila_cria_load(char *string){
     return f;
 }
 
+//poderia ter utilizado strstr
 int procura_txt(struct dirent *a){
     
     int i;
@@ -482,33 +498,33 @@ int procura_txt(struct dirent *a){
     return 0;
 }
 
-int load_program(Fila *f[] , int n , struct dirent * arq){
+int load_program(Fila *f[] , int *n , struct dirent * arq){
     
-    
-    //Se achar o txt
+    int i = 0;
+    char string[102];
     if (procura_txt(arq)) {
-        printf("achou txt\n");
         
-        //Abertura-Arquivos --------//
-        char root[102] = "//Users//tauanflores//Desktop//PControl-Despesas//";
-        char fileName[102];
-        strcpy(fileName, arq->d_name);
-        strcat(root, fileName);
-        
-        FILE *arqColunas = fopen(root,"r");
-        if (arqColunas == NULL) {
-            printf("File %s nao encontrada.",fileName);
+    //Procura o controle.
+    if (strcmp(arq->d_name, "controle.txt")) {
+        FILE *arqControle = fopen("//Users//tauanflores//Desktop//PControl-Despesas//controle.txt","r");
+        if (arqControle == NULL) {
+            printf("Nao abriu controle.txt\n");
             abort();
         }
         
-        f[n] = fila_cria_load(arq->d_name);
-        n++;
+        while (fscanf(arqControle, " %[^\n]s",string) == 1) {
+            f[i] = fila_cria_load(string);
+            i++;
+        }
+        
+        
         return 1;
+        
+    }else{
+        printf("Arquivo controle.txt nao encontrado.");
     }
-    
-    else{
-        return 0;
     }
+    return 0;
 }
 
 void chama_menu_switch(Fila *f[], int n){
@@ -861,13 +877,14 @@ int main(void) {
     Fila *v[MAX];
     inicia_vetor_null(v , MAX);
     int n = 0;
+    int *pN = &n;
     // LOAD DOS ARQUIVOS ***********************************************************************************
     DIR *dir;
     if((dir = opendir("//Users//tauanflores//Desktop//PControl-Despesas//")) != NULL) {
         /* print all the files and directories within directory */
         while ((ent = readdir (dir)) != NULL) {
             printf ("%s\n", ent->d_name);
-            load_program(v,n,ent);
+            load_program(v,pN,ent);
         }
         closedir (dir);
     } else {
