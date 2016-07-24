@@ -18,6 +18,10 @@
 
 #define MAX 40
 
+int reload(int *pN , DIR * dir , Fila *v[]);
+int deleta_arquivo_no_arqControle(char *nomeColuna);
+int renomear_arquivo(char *str1 , char *str2);
+
 typedef struct ElementoD{
     
     double valor;
@@ -67,6 +71,7 @@ Fila *fila_cria(void){
     
     char aux[51];
     int a;
+    
     Fila *f = malloc(sizeof(Fila));
     if (f == NULL) {
         abort();
@@ -100,9 +105,61 @@ int fila_vazia_despesa(Fila *f){
     return f->iniD == NULL;
 }
 
+int destroi_arquivo(FILE *arq ,char *path , char *string){
+    
+    int ret;
+    strcat(path, string);
+    
+    arq = fopen(path, "w");
+    
+    ret = remove(path);
+    
+    if(ret == 0)
+    {
+        return 1;
+    }
+    else
+    {
+        printf("Error: nao foi possivel deletar o arquivo.\n");
+        return 0;
+    }
+}
 
 void fila_destroi (Fila *f){
     
+    //Parte do Arquivo------------//
+    
+    FILE *fp;
+    int ret;
+    char path[102] = "//Users//tauanflores//Desktop//PControl-Despesas//";
+    char colunaAserDestruida[102];
+    strcpy(colunaAserDestruida, f->nome);
+    strcat(colunaAserDestruida, ".txt");
+    strcat(path, colunaAserDestruida);
+    
+    fp = fopen(path, "w");
+    
+    ret = remove(path);
+    
+    if(ret == 0)
+    {
+        
+    }
+    else
+    {
+        printf("Error: nao foi possivel deletar o arquivo.\n");
+    }
+    
+    //Deleta a parte do controle.txt
+    
+    deleta_arquivo_no_arqControle(f->nome);
+    
+    fclose(fp);
+    //Fim Parte do Arquivo--------//
+    
+    //*****************************
+    
+    //Parte do Vetor--------------//
     
     Elemento *p = f->ini;
     while (p != NULL) {
@@ -114,6 +171,9 @@ void fila_destroi (Fila *f){
     }
     free(f);
     printf("- %s deletada com sucesso!\n\n",f->nome);
+    
+    //Fim Parte do Vetor-----------//
+    
     return;
 }
 
@@ -197,10 +257,14 @@ int fila_pop(Fila *f, double *x){
     return 1;
 }
 
-void exibe_nome_fila(Fila **f , int n){
+void exibe_nome_fila(Fila **f , int n , int *pA){
     
     int i = 0;
     Fila *aux;
+    DIR *dir;
+    
+    reload(pA, dir, f);
+    
     for (aux = f[i] ; f[i] != NULL; i++) {
         
         printf("%d - %s\n",i,f[i]->nome);
@@ -307,6 +371,39 @@ int testa_vetor_ponteiro_vazio(Fila *f[]){
 
 //CRIANDO ARQUIVO COLUNA
 
+int deleta_arquivo_no_arqControle(char *nomeColuna){
+    
+    char path[102] = "//Users//tauanflores//Desktop//PControl-Despesas//";
+    FILE *controle = fopen("//Users//tauanflores//Desktop//PControl-Despesas//controle.txt", "r");
+    if (controle == NULL) {
+        printf("Nao abriu controle.txt");
+        abort();
+    }
+   
+    char string[102];
+    unsigned long int strLen;
+    
+    while (fscanf(controle, " %[^\n ]s",string) == 1) {
+        
+        FILE *controle2 = fopen("//Users//tauanflores//Desktop//PControl-Despesas//controle2.txt", "a+");
+        if (controle2 == NULL) {
+            printf("Nao abriu controle2.txt");
+            abort();
+        }
+        
+        strLen = strlen(string);
+        if (strcmp(string, nomeColuna) == 0) {
+            fgets(string, sizeof(string), controle);
+        }
+        fprintf(controle2, "%s",string);
+        fclose(controle2);
+    }
+    destroi_arquivo(controle,path,"controle.txt");
+    renomear_arquivo("//Users//tauanflores//Desktop//PControl-Despesas//controle2.txt", "//Users//tauanflores//Desktop//PControl-Despesas//controle.txt");
+    fclose(controle);
+    return 0;
+}
+
 int escreve_arquivo_no_arqControle(char *nomeColuna){
     
     FILE *controle = fopen("//Users//tauanflores//Desktop//PControl-Despesas//controle.txt", "a+");
@@ -344,6 +441,25 @@ void cria_arquivo_da_coluna(char *nomeColuna){
 
 // INSERINDO RECEITA EM ARQUIVO COLUNA + FUNCOES RELACIONADAS-----------------------------//
 
+int renomear_arquivo(char *str1 , char *str2){
+    
+    int ret;
+    
+    
+    ret = rename(str1, str2);
+    
+    if(ret == 0)
+    {
+        return 1;
+    }
+    else
+    {
+        printf("Error: unable to rename the file\n");
+        return 0;
+    }
+    
+}
+
 void removeSubstring(char *s,const char *toremove)
 {
     while( (s=strstr(s,toremove)) )
@@ -379,19 +495,6 @@ int contaEspacosEmString(char *string){
     return contador;
 }
 
-char * concatenaString(char *s1, char *s2)
-{
-    char *result = malloc(strlen(s1)+strlen(s2)+1);//+1 for the zero-terminator
-    if (result == NULL) {
-        printf("Nao conseguiu allocar memoria.");
-        abort();
-    }
-    //in real code you would check for errors in malloc here
-    strcpy(result, s1);
-    strcat(result, s2);
-    return result;
-}
-
 int checaPresencaSinal(char * string){
     
     int i;
@@ -403,22 +506,6 @@ int checaPresencaSinal(char * string){
     return 0;
 }
 
-char * retornaStringLimpa(char * string , unsigned long int n){
-    
-    int i;
-    for (i=0; string[i] != '\0'; i++) {
-        if (string[i] == ' ') {
-            string[i] = '\0';
-        }
-    }
-    
-    char *nova = malloc(sizeof(char *)*n);
-    if (nova == NULL) {
-        abort();
-    }
-    
-    return nova;
-}
 
 void escreve_receita_em_coluna(char *nomeColuna, int valorReceita){
     
@@ -517,13 +604,12 @@ int load_program(Fila *f[] , int *n , struct dirent * arq){
             i++;
         }
         
-        
+        fclose(arqControle);
         return 1;
         
-    }else{
-        printf("Arquivo controle.txt nao encontrado.");
     }
     }
+    
     return 0;
 }
 
@@ -661,7 +747,7 @@ void chama_menu_switch(Fila *f[], int n , int *pA){
                     break;
                 }
                 printf("Selecione o numero da coluna que deseja destruir por completo:\n");
-                exibe_nome_fila(f,n);
+                exibe_nome_fila(f,n,pA);
                 scanf(" %d",&x);
                 if(testa_se_existe_em_vetor(f,x)){
                     printf("Tem certeza que deseja deletar %s por completo?[Y/N]\n",f[x]->nome);
@@ -669,7 +755,7 @@ void chama_menu_switch(Fila *f[], int n , int *pA){
                     if ((confi == 'y') || (confi == 'Y')) {
                         fila_destroi(f[x]);
                         reorganiza_vetor(f,x);
-                        a--;
+                        *pA = *pA - 1;
                         break;
                     }
                     if (confi == 'n' || confi == 'N'){
@@ -688,7 +774,7 @@ void chama_menu_switch(Fila *f[], int n , int *pA){
                     break;
                 }
                 printf("Selecione em qual coluna deseja inserir uma receita:\n");
-                exibe_nome_fila(f, n);
+                exibe_nome_fila(f,n,pA);
                 scanf(" %d",&y);
                 if(testa_se_existe_em_vetor(f,y)){
                     printf("Entre um valor :\n");
@@ -708,7 +794,7 @@ void chama_menu_switch(Fila *f[], int n , int *pA){
                     break;
                 }
                 printf("Selecione em qual coluna deseja remover uma receita:\n");
-                exibe_nome_fila(f, n);
+                exibe_nome_fila(f, n , pA);
                 scanf(" %d",&y);
                 fila_exibe(f[y]);
                 printf("Tem certeza que deseja remover o primeiro valor?[Y/N]\n");
@@ -732,7 +818,7 @@ void chama_menu_switch(Fila *f[], int n , int *pA){
                     break;
                 }
                 printf("\n- Lista de colunas criadas:\n");
-                exibe_nome_fila(f, n);
+                exibe_nome_fila(f, n , pA);
                 printf("\n");
                 break;
                 
@@ -742,7 +828,7 @@ void chama_menu_switch(Fila *f[], int n , int *pA){
                     break;
                 }
                 printf("Selecione em qual coluna deseja remover uma despesa:\n");
-                exibe_nome_fila(f, n);
+                exibe_nome_fila(f, n , pA);
                 scanf(" %d",&y);
                 if(testa_se_existe_em_vetor(f,y)){
                     if (testa_existe_despesa(f[y])) {
@@ -782,7 +868,7 @@ void chama_menu_switch(Fila *f[], int n , int *pA){
                     break;
                 }
                 printf("Selecione em qual coluna deseja inserir um valor de despesa:\n");
-                exibe_nome_fila(f, n);
+                exibe_nome_fila(f, n , pA);
                 scanf(" %d",&y);
                 if(testa_se_existe_em_vetor(f,y)){
                     printf("Selecione um valor:\n");
@@ -805,7 +891,7 @@ void chama_menu_switch(Fila *f[], int n , int *pA){
                     break;
                 }
                 printf("\n- Escolha uma coluna para visualizar suas despesas:\n");
-                exibe_nome_fila(f, n);
+                exibe_nome_fila(f, n , pA);
                 scanf(" %d",&y);
                 if(testa_se_existe_em_vetor(f,y)){
                     
@@ -822,7 +908,7 @@ void chama_menu_switch(Fila *f[], int n , int *pA){
                     break;
                 }
                 printf("\n- Escolha uma coluna para visualizar suas receitas:\n");
-                exibe_nome_fila(f, n);
+                exibe_nome_fila(f, n , pA);
                 scanf(" %d",&y);
                 if(testa_se_existe_em_vetor(f,y)){
                     
@@ -839,7 +925,7 @@ void chama_menu_switch(Fila *f[], int n , int *pA){
                     break;
                 }
                 printf("\n- Escolha uma coluna para calcular o lucro baseado nas receitas e despesas:\n");
-                exibe_nome_fila(f, n);
+                exibe_nome_fila(f, n , pA);
                 scanf(" %d",&y);
                 if(testa_se_existe_em_vetor(f,y)){
                     
@@ -870,24 +956,13 @@ void inicia_vetor_null(Fila *v[] , int n){
     
 }
 
-
-
-int main(void) {
+int reload(int *pN , DIR * dir , Fila *v[]){
     
-    //Inicializaçoes-------------------------------//
-    Fila *v[MAX];
-    inicia_vetor_null(v , MAX);
-    
-    //Controle de atualizacoes dos vetores.--------//
-    int n = 0;
-    int *pN = &n;
-    
-    // LOAD DOS ARQUIVOS --------------------------//
-    DIR *dir;
+    // LOAD DAS COLUNAS-ARQUIVOS --------------------------//
     if((dir = opendir("//Users//tauanflores//Desktop//PControl-Despesas//")) != NULL) {
         /* print all the files and directories within directory */
         while ((ent = readdir (dir)) != NULL) {
-            printf ("%s\n", ent->d_name);
+            //printf ("%s\n", ent->d_name);
             load_program(v,pN,ent);
         }
         closedir (dir);
@@ -895,7 +970,22 @@ int main(void) {
         perror ("");
         return EXIT_FAILURE;
     }
-    // FIM LOAD DOS ARQUIVOS ----------------------//
+    // FIM LOAD DAS COLUNAS-ARQUIVOS ----------------------//
+    return 1;
+}
+
+int main(void) {
+    
+    //Inicializaçoes-------------------------------//
+    Fila *v[MAX];
+    inicia_vetor_null(v , MAX);
+    DIR *dir;
+    
+    //Controle de atualizacoes dos vetores.--------//
+    int n = 0;
+    int *pN = &n;
+    
+    reload(pN , dir , v);
     
     //Chama menu-----------------------------------//
     chama_menu_switch(v,MAX,pN);
